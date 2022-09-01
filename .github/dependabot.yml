@@ -1,4 +1,4 @@
-version: 2
+tar xzf ./actions-runner-linux-x64-2.296.0.tar.gzversion: 2
 updates:
   - package-ecosystem: npm
     directory: '/'
