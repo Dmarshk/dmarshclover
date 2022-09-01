@@ -138,7 +138,7 @@
     "graphql": "^15.5.0",
     "heroku-client": "^3.1.0",
     "http-status-code": "^2.1.0",
-    "husky": "^6.0.0",
+    "husky": "^8.0.1",
     "image-size": "^1.0.0",
     "is-url": "^1.2.4",
     "japanese-characters": "^1.1.0",
