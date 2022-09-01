@@ -86,7 +86,7 @@
     "styled-components": "^5.3.0",
     "throng": "^5.0.0",
     "unified": "^8.4.2",
-    "unist-util-visit": "^2.0.3",
+    "unist-util-visit": "^4.1.1",
     "uuid": "^8.3.2",
     "walk-sync": "^2.2.0"
   },
