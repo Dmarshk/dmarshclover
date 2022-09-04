@@ -1,11 +1,28 @@
-import React from 'react'
-import { AppProps } from 'next/app'
+import React, { useEffect } from 'react'
+import App from 'next/app'
+import type { AppProps, AppContext } from 'next/app'
 import Head from 'next/head'
-import { ThemeProvider } from '@primer/components'
+import { useTheme, ThemeProvider } from '@primer/components'
+import { SSRProvider } from '@react-aria/ssr'
+import { defaultComponentThemeProps, getThemeProps } from 'components/lib/getThemeProps'
 
-import '@primer/css/index.scss'
+import '../stylesheets/index.scss'
 
-const App: React.FC<AppProps> = ({ Component, pageProps }) => {
+import events from 'components/lib/events'
+import experiment from 'components/lib/experiment'
+import { LanguagesContext, LanguagesContextT } from 'components/context/LanguagesContext'
+
+type MyAppProps = AppProps & {
+  csrfToken: string
+  themeProps: typeof defaultComponentThemeProps
+  languagesContext: LanguagesContextT
+}
+const MyApp = ({ Component, pageProps, csrfToken, themeProps, languagesContext }: MyAppProps) => {
+  useEffect(() => {
+    events()
+    experiment()
+  }, [])
+
   return (
     <>
       <Head>
@@ -25,13 +42,43 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
           content="c1kuD-K2HIVF635lypcsWPoD4kilo5-jA_wBFyT4uMY"
         />
 
-        <meta name="csrf-token" content="$CSRFTOKEN$" />
+        <meta name="csrf-token" content={csrfToken} />
       </Head>
-      <ThemeProvider>
-        <Component {...pageProps} />
-      </ThemeProvider>
+      <SSRProvider>
+        <ThemeProvider dayScheme={themeProps.dayTheme} nightScheme={themeProps.nightTheme}>
+          <LanguagesContext.Provider value={languagesContext}>
+            <SetTheme themeProps={themeProps} />
+            <Component {...pageProps} />
+          </LanguagesContext.Provider>
+        </ThemeProvider>
+      </SSRProvider>
     </>
   )
 }
 
-export default App
+MyApp.getInitialProps = async (appContext: AppContext) => {
+  const { ctx } = appContext
+  // calls page's `getInitialProps` and fills `appProps.pageProps`
+  const appProps = await App.getInitialProps(appContext)
+  const req: any = ctx.req
+
+  return {
+    ...appProps,
+    themeProps: getThemeProps(req),
+    csrfToken: req?.csrfToken?.() || '',
+    languagesContext: { languages: req.context.languages },
+  }
+}
+
+const SetTheme = ({ themeProps }: { themeProps: typeof defaultComponentThemeProps }) => {
+  // Cause primer/components to re-evaluate the 'auto' color mode on client side render
+  const { setColorMode } = useTheme()
+  useEffect(() => {
+    setTimeout(() => {
+      setColorMode(themeProps.colorMode as any)
+    })
+  }, [])
+  return null
+}
+
+export default MyApp
